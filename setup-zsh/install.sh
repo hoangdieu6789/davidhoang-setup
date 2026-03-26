@@ -7,9 +7,15 @@
 #   ./install.sh              # install packages, Oh My Zsh, copy files/zshrc and optional files/oh-my-zsh
 #   ./install.sh --skip-chsh  # do not change the login shell to zsh
 #
+# Linux: uses apt/dnf/pacman/etc. macOS (Terminal.app, iTerm): uses Homebrew if git/zsh are missing;
+# otherwise relies on the system zsh and Xcode CLT git.
+#
 # Before first run, copy your backups into this directory:
 #   files/zshrc          -> installed as ~/.zshrc
 #   files/oh-my-zsh/     -> installed as ~/.oh-my-zsh/ (optional; replaces the fresh install)
+#
+# This script disables TLS certificate verification for git/curl during install only (common behind
+# corporate TLS inspection). Use a trusted network.
 
 set -euo pipefail
 
@@ -34,41 +40,69 @@ die() {
   exit 1
 }
 
+# Install-time only: skip TLS verify for git clone and curl (no flag required).
+setup_install_tls() {
+  export GIT_SSL_NO_VERIFY=1
+}
+
+install_packages_macos() {
+  # zsh is preinstalled on supported macOS; git often comes from Xcode CLT or Homebrew.
+  if command -v zsh >/dev/null 2>&1 && command -v git >/dev/null 2>&1; then
+    echo "macOS: zsh and git already available."
+    return 0
+  fi
+  if command -v brew >/dev/null 2>&1; then
+    echo "macOS: installing missing tools with Homebrew..."
+    brew install git zsh
+    return 0
+  fi
+  echo "On macOS, install Xcode Command Line Tools (includes git):  xcode-select --install" >&2
+  echo "Or install Homebrew from https://brew.sh then re-run this script." >&2
+  die "macOS: need git and zsh (brew not found or install incomplete)."
+}
+
 install_packages() {
   if ! command -v curl >/dev/null 2>&1; then
     die "curl is required but not found. Install curl and re-run."
   fi
 
+  case "$(uname -s)" in
+    Darwin)
+      install_packages_macos
+      return 0
+      ;;
+  esac
+
   if [[ -f /etc/os-release ]]; then
     # shellcheck source=/dev/null
     . /etc/os-release
   else
-    die "Cannot detect OS (missing /etc/os-release)."
+    die "Cannot detect OS (missing /etc/os-release on Linux)."
   fi
 
   local id_like="${ID_LIKE:-}"
   case "${ID:-}" in
     debian|ubuntu|linuxmint|pop)
       sudo apt-get update
-      sudo apt-get install -y zsh git
+      sudo apt-get install -y ca-certificates zsh git
       ;;
     fedora|rhel|centos)
       if command -v dnf >/dev/null 2>&1; then
-        sudo dnf install -y zsh git
+        sudo dnf install -y ca-certificates zsh git
       else
-        sudo yum install -y zsh git
+        sudo yum install -y ca-certificates zsh git
       fi
       ;;
     arch|manjaro)
-      sudo pacman -S --needed --noconfirm zsh git
+      sudo pacman -S --needed --noconfirm ca-certificates zsh git
       ;;
     opensuse*|sles)
-      sudo zypper install -y zsh git
+      sudo zypper install -y ca-certificates zsh git
       ;;
     *)
       if echo "$id_like" | grep -q debian; then
         sudo apt-get update
-        sudo apt-get install -y zsh git
+        sudo apt-get install -y ca-certificates zsh git
       elif echo "$id_like" | grep -q rhel; then
         sudo dnf install -y zsh git 2>/dev/null || sudo yum install -y zsh git
       else
@@ -86,7 +120,7 @@ install_oh_my_zsh() {
   echo "Installing Oh My Zsh (unattended)..."
   export RUNZSH=no
   export CHSH=no
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+  sh -c "$(curl -kfsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 }
 
 apply_dotfiles() {
@@ -127,6 +161,7 @@ set_login_shell() {
 
 main() {
   install_packages
+  setup_install_tls
   install_oh_my_zsh
   apply_dotfiles
   set_login_shell

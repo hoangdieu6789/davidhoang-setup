@@ -79,6 +79,10 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
+# Robbyrussell uses %c (current folder name only). Show full path (~ for $HOME).
+PROMPT="%(?:%{$fg_bold[green]%}%1{➜%} :%{$fg_bold[red]%}%1{➜%} ) %{$fg[cyan]%}%~%{$reset_color%}"
+PROMPT+=' $(git_prompt_info)'
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
@@ -105,3 +109,93 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias lt="ls -ltr"
+
+
+# Host banner + rainbow welcome (interactive shells only)
+_omz_welcome_banner() {
+  [[ -o interactive ]] || return 0
+
+  local host user os kernel arch up load mem disk ip env_line
+  host=$(hostname 2>/dev/null || echo '?')
+  user=${USER:-$(id -un)}
+  if [[ -r /etc/os-release ]]; then
+    os=$(grep -E '^PRETTY_NAME=' /etc/os-release | cut -d= -f2- | tr -d '"')
+  else
+    os=$(uname -s 2>/dev/null || echo '?')
+  fi
+  kernel=$(uname -r)
+  arch=$(uname -m)
+  up=$(uptime -p 2>/dev/null)
+  [[ -z $up ]] && up=$(awk '{d=int($1/86400); h=int(($1%86400)/3600); if(d>0) printf "%dd %dh", d, h; else if(h>0) printf "%dh", h; else printf "%dm", int($1/60)}' /proc/uptime 2>/dev/null)
+  [[ -z $up ]] && up="n/a"
+  load=$(awk '{printf "%s  %s  %s", $1, $2, $3}' /proc/loadavg 2>/dev/null)
+  [[ -z $load ]] && load="n/a"
+  mem=$(free -h 2>/dev/null | awk '/^Mem:/ {print $3 " / " $2 " (avail " $7 ")"}')
+  [[ -z $mem ]] && mem="n/a"
+  disk=$(df -h / 2>/dev/null | awk 'NR==2 {print $3 " / " $2 " (" $5 " full)"}')
+  [[ -z $disk ]] && disk="n/a"
+  ip=$(hostname -I 2>/dev/null | awk '{print $1; exit}')
+  [[ -z $ip ]] && ip="n/a"
+  if grep -qi microsoft /proc/version 2>/dev/null; then
+    env_line="WSL"
+  else
+    env_line=$(uname -s)
+  fi
+
+  local banner_title
+  local -a _parts
+  _parts=()
+  if grep -qi microsoft /proc/version 2>/dev/null; then
+    _parts+=(WSL)
+  elif [[ -f /.dockerenv ]] || { [[ -r /proc/1/cgroup ]] && grep -qE '(docker|podman|containerd|kubepods|lxc)' /proc/1/cgroup 2>/dev/null; }; then
+    _parts+=(container)
+  elif command -v systemd-detect-virt >/dev/null 2>&1; then
+    local _virt
+    _virt=$(systemd-detect-virt 2>/dev/null)
+    if [[ -z $_virt || $_virt == none ]]; then
+      _parts+=(physical)
+    else
+      _parts+=("$_virt")
+    fi
+  else
+    _parts+=(system)
+  fi
+  [[ -n $SSH_CONNECTION ]] && _parts+=(SSH)
+  banner_title="${(j: · :)_parts} · snapshot"
+
+  clear
+  local B='\e[38;5;38m' L='\e[38;5;246m' V='\e[38;5;252m' Z='\e[0m'
+
+  printf '\n'
+  printf '%b────────────────────────────────────────────────────────────────%b\n' "$B" "$Z"
+  printf '%b  %s%b\n' "$V" "$banner_title"
+  printf '%b────────────────────────────────────────────────────────────────%b\n' "$B" "$Z"
+  printf '%b  %-14s%b %s\n' "$L" "Host" "$Z" "$host"
+  printf '%b  %-14s%b %s @ %s\n' "$L" "User" "$Z" "$user" "$host"
+  printf '%b  %-14s%b %s\n' "$L" "Environment" "$Z" "$env_line"
+  printf '%b  %-14s%b %s\n' "$L" "OS" "$Z" "$os"
+  printf '%b  %-14s%b %s (%s)\n' "$L" "Kernel" "$Z" "$kernel" "$arch"
+  printf '%b  %-14s%b %s\n' "$L" "Uptime" "$Z" "$up"
+  printf '%b  %-14s%b %s\n' "$L" "Load avg" "$Z" "$load"
+  printf '%b  %-14s%b %s\n' "$L" "Memory" "$Z" "$mem"
+  printf '%b  %-14s%b %s\n' "$L" "Disk (/) " "$Z" "$disk"
+  printf '%b  %-14s%b %s\n' "$L" "IPv4" "$Z" "$ip"
+  printf '%b────────────────────────────────────────────────────────────────%b\n' "$B" "$Z"
+
+  local text='Welcome to my Friend!!!'
+  local i idx
+  local colors=(
+    196 202 208 214 220 226 190 154 118 82 46 47 48 49 51 45 39 33 27
+    63 69 75 81 87 93 99 105 111 117 123 129 135 141 147 153 159 165 171
+  )
+  local n=${#colors}
+  printf '\n'
+  for (( i=1; i<=${#text}; i++ )); do
+    idx=$(( (i - 1) % n + 1 ))
+    printf '\e[38;5;%sm%s' "${colors[idx]}" "${text[i]}"
+  done
+  printf '\e[0m\n\n'
+}
+_omz_welcome_banner
+unset -f _omz_welcome_banner
+

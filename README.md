@@ -12,6 +12,7 @@ Personal setup scripts and notes for tools I use on more than one machine. The a
 | Folder       | What it sets up | Guidance |
 | ------------ | --------------- | -------- |
 | [`setup-zsh/`](setup-zsh/) | zsh, Oh My Zsh, and bundled `~/.zshrc` (plus optional `~/.oh-my-zsh` backup) | [setup-zsh/README.md](setup-zsh/README.md) |
+| [`setup-neovim/`](setup-neovim/) | Neovim 0.11+, lazy.nvim, Mason LSP (Go + Angular/TS), Tree-sitter, Telescope | **Use:** `cd setup-neovim && ./install.sh` (full) or `./install.sh --skip-packages` (config only). Add `export PATH="$HOME/.local/bin:$HOME/.local/go/bin:$PATH"` to your shell profile. Details: [setup-neovim/README.md](setup-neovim/README.md) |
 
 ## Adding another tool
 

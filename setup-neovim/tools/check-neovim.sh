@@ -74,4 +74,4 @@ else
   fail "nvim failed headless (try: ${NVIM_CMD[*]} -u NONE --headless +qa)"
 fi
 
-printf "\nOptional: open nvim and run :Mason to confirm gopls, typescript-language-server, angular-language-server (LSP names: gopls, ts_ls, angularls).\n"
+printf "\nOptional: open nvim and run :Mason for LSP packages (see lua/config/mason.lua).\n"

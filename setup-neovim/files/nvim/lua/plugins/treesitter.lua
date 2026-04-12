@@ -13,6 +13,8 @@ local parsers = {
   "tsx",
   "json",
   "jsonc",
+  "yaml",
+  "bash",
   "html",
   "css",
   "scss",

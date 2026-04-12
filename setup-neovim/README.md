@@ -44,7 +44,7 @@ When you already have Neovim **0.11+**, a C compiler, **`tree-sitter`**, **`go`*
 ### After installation
 
 1. Run **`nvim`**.
-2. Open **`:Mason`** and let **`gopls`**, **`typescript-language-server`**, and **`angular-language-server`** finish if you use those stacks (**`go`** must be on **`PATH`** for Go-related Mason packages).
+2. Open **`:Mason`** and let language servers finish installing as needed (**`go`** on **`PATH`** for **gopls** / Go tooling; **JSON**, **Bash**, **YAML** use **`json-lsp`**, **`bash-language-server`**, **`yaml-language-server`**).
 3. If highlights or parsers fail: **`:checkhealth nvim-treesitter`** and confirm **`:!which tree-sitter`** inside Neovim.
 
 ### Verify with `check-neovim.sh`
@@ -62,11 +62,12 @@ Change **`files/nvim`** in git, then re-run **`./install.sh`** or **`./install.s
 ## What you get
 
 - **Plugin manager**: `lazy.nvim`
-- **LSP**: [Mason](https://github.com/mason-org/mason.nvim) + [mason-lspconfig](https://github.com/mason-org/mason-lspconfig.nvim) + [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig), with **gopls**, **ts_ls** (TypeScript, Mason package `typescript-language-server`), and **angularls** queued for install
+- **LSP**: [Mason](https://github.com/mason-org/mason.nvim) + [mason-lspconfig](https://github.com/mason-org/mason-lspconfig.nvim) + [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig), with **gopls**, **ts_ls**, **angularls**, **jsonls**, **bashls**, and **yamlls** queued for install (see **`lua/config/mason.lua`** for Mason package names)
 - **Completion**: `nvim-cmp` + `LuaSnip`
-- **Syntax**: Tree-sitter (Go modules, TypeScript/TSX, HTML, CSS, JSON, …)
-- **UI**: Tokyo Night, Telescope, Which Key
+- **Syntax**: Tree-sitter (Go modules, TypeScript/TSX, HTML, CSS, JSON/JSONC, YAML, Bash, …)
+- **UI**: Tokyo Night, Telescope, [nvim-tree](https://github.com/nvim-tree/nvim-tree.lua), Which Key
 - **Quality-of-life**: LSP format on save when the active server supports formatting, diagnostics shortcuts, common LSP keymaps
+- **Tests**: [Neotest](https://github.com/nvim-neotest/neotest) + [neotest-go](https://github.com/nvim-neotest/neotest-go) (`go test` from the editor; Tree-sitter **go** parser + **`go`** on **PATH**)
 
 ## Requirements
 
@@ -94,7 +95,7 @@ Implementation notes: **`lua/config/mason.lua`** centralizes Mason package names
 
 ### Mason registry (LSP packages will not install)
 
-This config **does not** use mason-lspconfig’s **`ensure_installed`** (that list depends on a registry-derived map that can be empty and wrongly reject **`gopls`**). It installs **Mason packages by name**: `gopls`, `typescript-language-server`, `angular-language-server`, which map to LSP configs **`gopls`**, **`ts_ls`**, **`angularls`**.
+This config **does not** use mason-lspconfig’s **`ensure_installed`** (that list depends on a registry-derived map that can be empty and wrongly reject **`gopls`**). It installs **Mason packages by name** (see **`lua/config/mason.lua`**), e.g. **`gopls`**, **`typescript-language-server`**, **`angular-language-server`**, **`json-lsp`**, **`bash-language-server`**, **`yaml-language-server`**, mapped to **`gopls`**, **`ts_ls`**, **`angularls`**, **`jsonls`**, **`bashls`**, **`yamlls`**.
 
 If installs still fail, run **`:MasonUpdate`**, check **`:checkhealth mason`**, and ensure **`curl`** works. As a last resort, remove **`~/.local/share/nvim/mason/registries`** and restart Neovim so the registry is downloaded again.
 
@@ -163,6 +164,13 @@ On macOS, **Homebrew** is preferred when available.
 | `<leader>ff` | Telescope find files |
 | `<leader>fg` | Telescope live grep |
 | `<leader>fb` | Telescope buffers |
+| `<leader>e` | Toggle nvim-tree file explorer |
+| `<leader>tn` | Neotest: run nearest test |
+| `<leader>tf` | Neotest: run tests in file |
+| `<leader>ta` | Neotest: run suite (`go test` from cwd) |
+| `<leader>ts` | Neotest: toggle summary |
+| `<leader>to` | Neotest: open output |
+| `<leader>tS` | Neotest: stop run |
 | `gd` / `gr` / `K` | LSP definition / references / hover |
 | `<leader>rn` | LSP rename |
 | `<leader>ca` | LSP code action |

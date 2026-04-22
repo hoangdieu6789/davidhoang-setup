@@ -12,7 +12,6 @@ local parsers = {
   "javascript",
   "tsx",
   "json",
-  "jsonc",
   "yaml",
   "bash",
   "html",

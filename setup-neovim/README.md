@@ -157,6 +157,17 @@ If your distro ships Neovim **older than 0.11**, you can either:
 
 On macOS, **Homebrew** is preferred when available.
 
+## Practice games (vim-be-good)
+
+[vim-be-good](https://github.com/ThePrimeagen/vim-be-good) is included (`lua/plugins/games.lua`). It loads only when you run it.
+
+1. Open Neovim and run **`:VimBeGood`**.
+2. Pick a game and a difficulty by **deleting** its line with `dd` (that is the first exercise).
+3. Games: `words`, `ci{`, `relative`, `hjkl`, `whackamole`, `snake`, `random`. Quit with `:q`.
+
+Tip: 10 minutes a day. Start with `hjkl` and `relative` on **easy**, then `words` and `ci{`.
+New to Vim? Run **`:Tutor`** first (built in, about 30 minutes).
+
 ## Keymaps (reference)
 
 | Key | Action |

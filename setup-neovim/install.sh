@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Install Neovim (0.11+), Go toolchain, deps, and ~/.config/nvim; headless :Lazy sync.
+# Install Neovim (0.11+), Go toolchain, tools (ripgrep, fd, lazygit, node), ~/.config/nvim,
+# plugins (headless :Lazy restore) and language servers (Mason); then print a check list.
 #
 # Usage:
 #   ./install.sh                 # packages + Go 1.24.3 + config + Lazy sync
@@ -150,8 +151,9 @@ install_tree_sitter_cli() {
 
   if [[ "$(uname -s)" == Darwin ]] && command -v brew >/dev/null 2>&1; then
     echo "Installing tree-sitter CLI via Homebrew..."
-    brew install tree-sitter
-    command -v tree-sitter >/dev/null 2>&1 || die "brew install tree-sitter did not provide a tree-sitter binary on PATH."
+    # The `tree-sitter` formula is only the library; the CLI is `tree-sitter-cli`.
+    brew install tree-sitter-cli
+    command -v tree-sitter >/dev/null 2>&1 || die "brew install tree-sitter-cli did not provide a tree-sitter binary on PATH."
     return 0
   fi
 
@@ -194,22 +196,34 @@ apt_install_core() {
   fi
 }
 
+# Homebrew formula:command pairs. A formula is installed only when its command is missing.
+MACOS_BREW_TOOLS=(
+  "git:git"
+  "curl:curl"
+  "ripgrep:rg"
+  "fd:fd"
+  "lazygit:lazygit"
+  "node:node"
+)
+
 install_packages_macos() {
-  if nvim_meets_min_version; then
-    echo "macOS: Neovim $(nvim --version | head -1) is sufficient."
-  elif command -v brew >/dev/null 2>&1; then
-    echo "macOS: installing Neovim and dependencies with Homebrew..."
-    brew install neovim git curl ripgrep fd tree-sitter
-    brew install gcc || true
+  command -v cc >/dev/null 2>&1 || die "macOS: a C compiler is required (plugins and parsers are compiled). Run: xcode-select --install"
+  if ! command -v brew >/dev/null 2>&1; then
+    echo "Warning: Homebrew not found (https://brew.sh). ripgrep, fd, lazygit and node will not be installed." >&2
+    echo "         If Neovim is below 0.11, it will be installed from GitHub releases next." >&2
+    command -v git >/dev/null 2>&1 || die "macOS: git is required. Run: xcode-select --install"
+    return 0
+  fi
+  local formulas=() entry
+  nvim_meets_min_version || formulas+=(neovim)
+  for entry in "${MACOS_BREW_TOOLS[@]}"; do
+    command -v "${entry#*:}" >/dev/null 2>&1 || formulas+=("${entry%%:*}")
+  done
+  if [[ ${#formulas[@]} -eq 0 ]]; then
+    echo "macOS: Neovim and all Homebrew tools are already installed."
   else
-    echo "macOS: Homebrew not found; if Neovim is below 0.11, it will be installed from GitHub releases next."
-  fi
-  if ! command -v git >/dev/null 2>&1; then
-    die "macOS: git is required. Install Xcode CLT or Homebrew, then re-run."
-  fi
-  if ! command -v lazygit >/dev/null 2>&1 && command -v brew >/dev/null 2>&1; then
-    echo "macOS: installing lazygit (Space gg in Neovim) with Homebrew..."
-    brew install lazygit || echo "Warning: could not install lazygit; Space gg will not work." >&2
+    echo "macOS: installing with Homebrew: ${formulas[*]}"
+    brew install "${formulas[@]}" || echo "Warning: brew install failed for some of: ${formulas[*]} (see the check at the end)." >&2
   fi
 }
 
@@ -250,8 +264,31 @@ install_packages_linux() {
       fi
       ;;
   esac
+  if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+    echo "Linux: installing Node.js and npm (language servers for TypeScript, Angular, JSON, Bash, YAML)..."
+    command -v node >/dev/null 2>&1 || linux_try_install nodejs || true
+    command -v npm >/dev/null 2>&1 || linux_try_install npm || true
+  fi
   if ! command -v lazygit >/dev/null 2>&1; then
-    echo "Note: lazygit is not installed (needed for Space gg). See https://github.com/jesseduffield/lazygit#installation" >&2
+    linux_try_install lazygit || true
+    command -v lazygit >/dev/null 2>&1 \
+      || echo "Note: lazygit is not in your package manager (needed for Space gg). See https://github.com/jesseduffield/lazygit#installation" >&2
+  fi
+}
+
+# Best effort: install one package with the distro package manager. Returns non-zero on failure.
+linux_try_install() {
+  local pkg="$1"
+  if command -v apt-get >/dev/null 2>&1; then
+    apt-cache show "${pkg}" >/dev/null 2>&1 && sudo apt-get install -y -qq "${pkg}"
+  elif command -v dnf >/dev/null 2>&1; then
+    sudo dnf install -y -q "${pkg}"
+  elif command -v pacman >/dev/null 2>&1; then
+    sudo pacman -S --needed --noconfirm "${pkg}"
+  elif command -v zypper >/dev/null 2>&1; then
+    sudo zypper install -y "${pkg}"
+  else
+    return 1
   fi
 }
 
@@ -322,19 +359,114 @@ bootstrap_lazy() {
   fi
   # With a lockfile, install the pinned plugin versions instead of updating them (keeps machines in sync).
   local lazy_cmd="sync"
-  [[ -f "${NVIM_SRC}/lazy-lock.json" ]] && lazy_cmd="restore"
+  local lock="${XDG_CONFIG_HOME:-${HOME}/.config}/nvim/lazy-lock.json" saved_lock=""
+  if [[ -f "${lock}" ]]; then
+    lazy_cmd="restore"
+    saved_lock="$(mktemp)"
+    cp "${lock}" "${saved_lock}"
+  fi
   if ! nvim --headless "+Lazy! ${lazy_cmd}" "+qa"; then
     export GIT_SSL_NO_VERIFY="${git_ssl}"
     die "Lazy sync failed. Open nvim and run :Lazy sync manually."
   fi
-  # init.lua clones the newest stable lazy.nvim; the first restore leaves it as is,
-  # so restore again to pin lazy.nvim to the lockfile too.
-  if [[ "${lazy_cmd}" == restore ]] && ! nvim --headless "+Lazy! restore" "+qa"; then
-    export GIT_SSL_NO_VERIFY="${git_ssl}"
-    die "Lazy sync failed. Open nvim and run :Lazy sync manually."
+  # init.lua clones the newest stable lazy.nvim, and the first restore writes that commit into the
+  # lockfile. Put the committed lockfile back and restore again so lazy.nvim is pinned too.
+  if [[ "${lazy_cmd}" == restore ]]; then
+    cp "${saved_lock}" "${lock}"
+    rm -f "${saved_lock}"
+    if ! nvim --headless "+Lazy! restore" "+qa"; then
+      export GIT_SSL_NO_VERIFY="${git_ssl}"
+      die "Lazy sync failed. Open nvim and run :Lazy sync manually."
+    fi
   fi
   export GIT_SSL_NO_VERIFY="${git_ssl}"
   echo "Lazy sync finished."
+}
+
+install_language_servers() {
+  echo "Installing language servers with Mason (gopls, ts_ls, angularls, jsonls, bashls, yamlls)..."
+  command -v npm >/dev/null 2>&1 \
+    || echo "Warning: npm not found; the TypeScript, Angular, JSON, Bash and YAML servers need Node.js and npm." >&2
+  if nvim --headless -c "luafile ${SCRIPT_DIR}/tools/mason-install.lua"; then
+    MASON_OK=true
+  else
+    MASON_OK=false
+    echo "Warning: some language servers did not install. Fix the cause above, then open nvim and run :Mason." >&2
+  fi
+}
+
+SHELL_PATH_LINE='export PATH="$HOME/.local/bin:$HOME/.local/go/bin:$PATH"'
+
+# Add ~/.local/bin and ~/.local/go/bin to the shell profile once (Go and tree-sitter live there).
+ensure_shell_path() {
+  local rc
+  case "$(basename "${SHELL:-}")" in
+    zsh) rc="${HOME}/.zshrc" ;;
+    bash)
+      if [[ "$(uname -s)" == Darwin ]]; then rc="${HOME}/.bash_profile"; else rc="${HOME}/.bashrc"; fi
+      ;;
+    *)
+      echo "Note: add this line to your shell profile: ${SHELL_PATH_LINE}"
+      return 0
+      ;;
+  esac
+  if [[ -f "${rc}" ]] && grep -q '\.local/go/bin' "${rc}"; then
+    echo "PATH: ${rc} already has ~/.local/go/bin"
+    return 0
+  fi
+  printf '\n# Added by davidhoang-setup/setup-neovim: Go, tree-sitter and nvim in ~/.local\n%s\n' "${SHELL_PATH_LINE}" >>"${rc}"
+  echo "PATH: added ~/.local/bin and ~/.local/go/bin to ${rc} (open a new terminal to use it)"
+}
+
+SUMMARY_MISSING=0
+
+# check_tool <label> <what needs it> <command> [other command names...]
+check_tool() {
+  local label="$1" purpose="$2" c
+  shift 2
+  for c in "$@"; do
+    if command -v "${c}" >/dev/null 2>&1; then
+      printf "  ok       %-12s %s\n" "${label}" "${purpose}"
+      return 0
+    fi
+  done
+  printf "  MISSING  %-12s %s\n" "${label}" "${purpose}"
+  SUMMARY_MISSING=$((SUMMARY_MISSING + 1))
+}
+
+print_summary() {
+  echo
+  echo "Check:"
+  check_tool nvim "Neovim" nvim
+  check_tool git "plugins, gitsigns, Space g" git
+  check_tool cc "build plugins and parsers" cc gcc clang
+  check_tool make "telescope-fzf-native" make
+  check_tool tree-sitter "syntax parsers" tree-sitter
+  check_tool ripgrep "Space fg / fw / fG (search text)" rg
+  check_tool fd "Space fd (find folder), faster Space ff" fd fdfind
+  check_tool go "gopls (Go language server)" go
+  check_tool node "TS / Angular / JSON / Bash / YAML servers" node
+  check_tool npm "installs those servers" npm
+  check_tool lazygit "Space gg" lazygit
+  if command -v node >/dev/null 2>&1; then
+    local node_major
+    node_major="$(node --version | sed 's/^v//; s/\..*//')"
+    if [[ "${node_major}" =~ ^[0-9]+$ ]] && [[ "${node_major}" -lt 18 ]]; then
+      printf "  OLD      %-12s %s\n" "node" "v${node_major} is too old for the language servers; install Node 18+"
+      SUMMARY_MISSING=$((SUMMARY_MISSING + 1))
+    fi
+  fi
+  if [[ "${MASON_OK:-false}" == true ]]; then
+    printf "  ok       %-12s %s\n" "Mason" "all language servers installed"
+  else
+    printf "  MISSING  %-12s %s\n" "Mason" "some language servers failed (open nvim, run :Mason)"
+    SUMMARY_MISSING=$((SUMMARY_MISSING + 1))
+  fi
+  if [[ "${SUMMARY_MISSING}" -gt 0 ]]; then
+    echo "${SUMMARY_MISSING} item(s) missing: the features next to them will not work until you install them."
+  else
+    echo "Everything is installed."
+  fi
 }
 
 main() {
@@ -352,8 +484,12 @@ main() {
   apply_config
   export GIT_SSL_NO_VERIFY="${GIT_SSL_NO_VERIFY:-1}"
   bootstrap_lazy
+  install_language_servers
+  if [[ "${SKIP_PACKAGES}" != true ]]; then
+    ensure_shell_path
+  fi
+  print_summary
   echo "Done. Start with: nvim"
-  echo "Tip: :Mason for LSP. Go: ${GO_INSTALL_DIR}/bin/go. tree-sitter: ~/.local/bin/tree-sitter (or Homebrew). Put ~/.local/bin on PATH for GUI Neovim."
 }
 
 main "$@"

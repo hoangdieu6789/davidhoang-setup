@@ -16,6 +16,18 @@ chmod +x install.sh tools/check-neovim.sh
 
 This **replaces** **`~/.config/nvim`** with the bundled **`files/nvim`** tree and runs **`:Lazy sync`** in headless mode. First run can take several minutes (plugin clone + Tree-sitter parser compiles).
 
+On a new machine, install these first (the script cannot do it for you): **Homebrew** ([brew.sh](https://brew.sh)) and **Xcode Command Line Tools** (`xcode-select --install`) on macOS, or **`sudo`** rights on Linux. Then one run of the script does the rest:
+
+| Step | What it does |
+| --- | --- |
+| Tools | Installs what is missing: Neovim 0.11+, git, curl, ripgrep, fd, lazygit, Node.js + npm (Homebrew on macOS; apt / dnf / pacman / zypper on Linux, best effort for lazygit and Node) |
+| Go + tree-sitter | Go 1.24.3 into **`~/.local/go`**, tree-sitter CLI (Homebrew **`tree-sitter-cli`** or **`~/.local/bin`**) |
+| Config | Copies or links (**`--link`**) **`files/nvim`** to **`~/.config/nvim`** |
+| Plugins | Installs the plugin versions from **`lazy-lock.json`** and compiles the Tree-sitter parsers |
+| Language servers | Installs all Mason packages from **`lua/config/mason.lua`** and waits until they are done (**`tools/mason-install.lua`**), so **`gd`** / **`gr`** work on first launch |
+| PATH | Adds **`export PATH="$HOME/.local/bin:$HOME/.local/go/bin:$PATH"`** to **`~/.zshrc`** (or **`~/.bashrc`** / **`~/.bash_profile`**) once |
+| Check | Prints **ok** / **MISSING** for every tool, with the feature that needs it |
+
 ### Set `PATH` for terminals and GUI apps
 
 The installer puts binaries under your home directory. Add them to **`PATH`** in **`~/.profile`**, **`~/.zshrc`**, or your desktop session environment so **terminals, IDEs, and GUI-launched Neovim** all see the same tools:
@@ -39,12 +51,12 @@ When you already have Neovim **0.11+**, a C compiler, **`tree-sitter`**, **`go`*
 ./install.sh --skip-packages
 ```
 
-**`--config-only`** is the same flag. This mode only copies config and runs **`:Lazy sync`**; it does **not** run **`apt`/`brew`**, does **not** install Go or the tree-sitter CLI, and does **not** upgrade Neovim from GitHub.
+**`--config-only`** is the same flag. This mode copies or links the config, installs plugins and language servers, and prints the check list. It does **not** run **`apt`/`brew`**, does **not** install Go or the tree-sitter CLI, does **not** upgrade Neovim from GitHub, and does **not** change your shell profile.
 
 ### After installation
 
-1. Run **`nvim`**.
-2. Open **`:Mason`** and let language servers finish installing as needed (**`go`** on **`PATH`** for **gopls** / Go tooling; **JSON**, **Bash**, **YAML** use **`json-lsp`**, **`bash-language-server`**, **`yaml-language-server`**).
+1. Read the check list at the end of the script output and install anything marked **MISSING**, then re-run the script.
+2. Open a new terminal (so the new **`PATH`** is used) and run **`nvim`**. Language servers are already installed; **`:Mason`** shows them.
 3. If highlights or parsers fail: **`:checkhealth nvim-treesitter`** and confirm **`:!which tree-sitter`** inside Neovim.
 
 ### Keep several machines in sync (`--link`)
@@ -88,18 +100,20 @@ Change **`files/nvim`** in git, then re-run **`./install.sh`** or **`./install.s
 
 ## Requirements
 
-- **sudo** (Linux) or **Homebrew** (macOS) for installing Neovim and build tools unless you use **`--skip-packages`**
+- **sudo** (Linux) or **Homebrew** + **Xcode Command Line Tools** (macOS) for installing Neovim and tools unless you use **`--skip-packages`**
+- **Node.js 18+** and **npm** for the TypeScript, Angular, JSON, Bash and YAML language servers (a full install adds them when missing)
 - **git** and **curl** (the installer clones lazy.nvim and plugins; Mason uses **curl** for the registry)
 - **A C compiler** (`build-essential` / Xcode CLT / `gcc`) for nvim-treesitter **1.x** (`tree-sitter build` compiles parsers)
-- **tree-sitter CLI** (0.26.1+) on **`PATH`** for parser installs. With a **full** **`./install.sh`**: macOS + Homebrew installs **`tree-sitter`** via **Homebrew**; Linux downloads the official [tree-sitter releases](https://github.com/tree-sitter/tree-sitter/releases) zip into **`~/.local/bin`**. **`unzip`** is installed where the script manages OS packages.
+- **tree-sitter CLI** (0.26.1+) on **`PATH`** for parser installs. With a **full** **`./install.sh`**: macOS + Homebrew installs the **`tree-sitter-cli`** formula (the **`tree-sitter`** formula is only the library); Linux downloads the official [tree-sitter releases](https://github.com/tree-sitter/tree-sitter/releases) zip into **`~/.local/bin`**. **`unzip`** is installed where the script manages OS packages.
 - **Go [1.24.3](https://go.dev/dl/)** on **`PATH`** if you use Mason for **gopls**, **gotests**, **golines**, etc. A full **`./install.sh`** downloads **`go1.24.3.<platform>.tar.gz`** from **`https://dl.google.com/go/`** and the matching **`.sha256`** file from the same host (checksums are verified; **`go.dev/dl/*.sha256`** URLs are HTML, so they are not used).
 
 ## Install commands (reference)
 
 | Command | When to use |
 | --- | --- |
-| **`./install.sh`** | Default: OS packages, **Go** into **`~/.local/go`**, **tree-sitter** into **`~/.local/bin`** (or Homebrew on macOS), **Neovim 0.11+** from GitHub if the system **`nvim`** is too old, then config + headless **`:Lazy sync`**. |
-| **`./install.sh --skip-packages`** | Same as **`--config-only`**: copy **`files/nvim`** → **`~/.config/nvim`** and **`:Lazy sync`** only. |
+| **`./install.sh`** | Default: missing tools (ripgrep, fd, lazygit, Node.js, …), **Go** into **`~/.local/go`**, **tree-sitter** CLI, **Neovim 0.11+** if the system **`nvim`** is too old, config, plugins, language servers, **`PATH`** in your shell profile, then the check list. |
+| **`./install.sh --skip-packages`** | Same as **`--config-only`**: config, plugins, language servers and the check list only. |
+| **`--link`** | Add to either command: symlink **`~/.config/nvim`** to this repo instead of copying (see above). |
 
 Config is installed to **`${XDG_CONFIG_HOME:-$HOME/.config}/nvim`**.
 

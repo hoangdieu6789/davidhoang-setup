@@ -199,3 +199,6 @@ _omz_welcome_banner() {
 _omz_welcome_banner
 unset -f _omz_welcome_banner
 
+
+# Added by davidhoang-setup/setup-neovim: Go, tree-sitter and nvim in ~/.local
+export PATH="$HOME/.local/bin:$HOME/.local/go/bin:$PATH"

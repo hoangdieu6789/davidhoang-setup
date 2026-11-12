@@ -47,6 +47,21 @@ When you already have Neovim **0.11+**, a C compiler, **`tree-sitter`**, **`go`*
 2. Open **`:Mason`** and let language servers finish installing as needed (**`go`** on **`PATH`** for **gopls** / Go tooling; **JSON**, **Bash**, **YAML** use **`json-lsp`**, **`bash-language-server`**, **`yaml-language-server`**).
 3. If highlights or parsers fail: **`:checkhealth nvim-treesitter`** and confirm **`:!which tree-sitter`** inside Neovim.
 
+### Keep several machines in sync (`--link`)
+
+Add **`--link`** to make **`~/.config/nvim`** a symlink to **`files/nvim`** in this repo instead of a copy:
+
+```bash
+git clone git@github.com:hoangdieu6789/davidhoang-setup.git ~/WorkSpace/davidhoang-setup
+cd ~/WorkSpace/davidhoang-setup/setup-neovim
+./install.sh --skip-packages --link
+```
+
+An existing **`~/.config/nvim`** folder is moved to **`~/.config/nvim.bak.<timestamp>`** first. After that:
+
+- Edits to the config (and **`lazy-lock.json`**, which Lazy updates on **`:Lazy update`**) land in the repo. Commit and push them.
+- On the other machines run **`git pull`**, then **`:Lazy restore`** in Neovim to install the plugin versions from **`lazy-lock.json`**.
+
 ### Verify with `check-neovim.sh`
 
 ```bash
@@ -57,7 +72,7 @@ Checks that **`nvim`** is on **`PATH`**, satisfies the **0.11+** policy, that **
 
 ### Updating the config from this repo
 
-Change **`files/nvim`** in git, then re-run **`./install.sh`** or **`./install.sh --skip-packages`**. The script deletes the previous **`~/.config/nvim`** and copies **`files/nvim`** again—keep a backup if you have local edits you need to merge.
+Change **`files/nvim`** in git, then re-run **`./install.sh`** or **`./install.sh --skip-packages`**. The script deletes the previous **`~/.config/nvim`** and copies **`files/nvim`** again—keep a backup if you have local edits you need to merge. With **`--link`** there is nothing to re-run: **`git pull`** is enough.
 
 ## What you get
 

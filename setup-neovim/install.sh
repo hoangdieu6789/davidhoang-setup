@@ -4,16 +4,19 @@
 # Usage:
 #   ./install.sh                 # packages + Go 1.24.3 + config + Lazy sync
 #   ./install.sh --skip-packages # config + Lazy sync only (Neovim 0.11+ and tooling on you)
+#   ./install.sh --link          # symlink ~/.config/nvim to files/nvim (edits go to git; sync with git pull)
 #   ./install.sh --help
 
 set -euo pipefail
 
 SKIP_PACKAGES=false
+LINK_CONFIG=false
 for arg in "$@"; do
   case "$arg" in
     --skip-packages|--config-only) SKIP_PACKAGES=true ;;
+    --link) LINK_CONFIG=true ;;
     -h|--help)
-      echo "Usage: $0 [--skip-packages|--config-only]"
+      echo "Usage: $0 [--skip-packages|--config-only] [--link]"
       exit 0
       ;;
   esac
@@ -279,14 +282,27 @@ apply_config() {
   [[ -d "${NVIM_SRC}" ]] || die "Missing bundled config: ${NVIM_SRC}"
   local cfg_root="${XDG_CONFIG_HOME:-${HOME}/.config}"
   local dest="${cfg_root}/nvim"
-  echo "Installing ${NVIM_SRC} -> ${dest}"
   mkdir -p "${cfg_root}"
+  if [[ "${LINK_CONFIG}" == true ]]; then
+    if [[ -L "${dest}" ]]; then
+      rm "${dest}"
+    elif [[ -e "${dest}" ]]; then
+      local backup
+      backup="${dest}.bak.$(date +%Y%m%d%H%M%S)"
+      echo "Moving existing ${dest} -> ${backup}"
+      mv "${dest}" "${backup}"
+    fi
+    echo "Linking ${dest} -> ${NVIM_SRC}"
+    ln -s "${NVIM_SRC}" "${dest}"
+    return 0
+  fi
+  echo "Installing ${NVIM_SRC} -> ${dest}"
   rm -rf "${dest}"
   cp -a "${NVIM_SRC}" "${dest}"
 }
 
 bootstrap_lazy() {
-  echo "Running headless :Lazy sync (first run may take a few minutes)..."
+  echo "Running headless :Lazy sync/restore (first run may take a few minutes)..."
   local git_ssl="${GIT_SSL_NO_VERIFY:-}"
   export GIT_SSL_NO_VERIFY="${GIT_SSL_NO_VERIFY:-1}"
   # nvim-treesitter shells out to `tree-sitter`; put user toolchain first (matches export_user_local_path).
@@ -297,7 +313,16 @@ bootstrap_lazy() {
   if [[ "${SKIP_PACKAGES}" == true ]] && ! command -v tree-sitter >/dev/null 2>&1; then
     echo "Warning: tree-sitter not on PATH; parser compile may fail. Install CLI or run $0 without --skip-packages." >&2
   fi
-  if ! nvim --headless "+Lazy! sync" "+qa"; then
+  # With a lockfile, install the pinned plugin versions instead of updating them (keeps machines in sync).
+  local lazy_cmd="sync"
+  [[ -f "${NVIM_SRC}/lazy-lock.json" ]] && lazy_cmd="restore"
+  if ! nvim --headless "+Lazy! ${lazy_cmd}" "+qa"; then
+    export GIT_SSL_NO_VERIFY="${git_ssl}"
+    die "Lazy sync failed. Open nvim and run :Lazy sync manually."
+  fi
+  # init.lua clones the newest stable lazy.nvim; the first restore leaves it as is,
+  # so restore again to pin lazy.nvim to the lockfile too.
+  if [[ "${lazy_cmd}" == restore ]] && ! nvim --headless "+Lazy! restore" "+qa"; then
     export GIT_SSL_NO_VERIFY="${git_ssl}"
     die "Lazy sync failed. Open nvim and run :Lazy sync manually."
   fi

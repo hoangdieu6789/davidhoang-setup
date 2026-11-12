@@ -20,6 +20,7 @@ return {
         { "<leader>s", group = "Split" },
         { "<leader>f", group = "Find" },
         { "<leader>g", group = "Git" },
+        { "<leader>T", group = "Terminal" },
       },
     },
   },

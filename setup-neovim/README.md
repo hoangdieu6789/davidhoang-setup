@@ -190,6 +190,10 @@ New to Vim? Run **`:Tutor`** first (built in, about 30 minutes).
 | `<leader>ff` | Telescope find files |
 | `<leader>fg` | Telescope live grep |
 | `<leader>fb` | Telescope buffers |
+| `<leader>fw` | Search the project for the word under the cursor |
+| `<leader>fr` | Reopen the last Telescope search |
+| `<leader>fo` | Recent files |
+| `<leader>/` | Search inside the current file |
 | `<leader>e` | Toggle nvim-tree file explorer |
 | `Ctrl-h` / `Ctrl-j` / `Ctrl-k` / `Ctrl-l` | Go to the window left / below / above / right |
 | `<leader>sv` / `<leader>sh` | Split vertical / horizontal |

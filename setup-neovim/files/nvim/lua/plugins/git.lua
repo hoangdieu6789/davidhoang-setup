@@ -61,4 +61,24 @@ return {
     event = "VeryLazy",
     config = true,
   },
+  {
+    -- Full git UI (status, diff, stage, commit, push, pull, branches) in a floating window.
+    -- Needs the `lazygit` program (install.sh installs it with Homebrew on macOS).
+    "kdheepak/lazygit.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    cmd = { "LazyGit", "LazyGitCurrentFile" },
+    keys = {
+      { "<leader>gg", "<cmd>LazyGit<CR>", desc = "LazyGit" },
+    },
+  },
+  {
+    -- Side-by-side diff of all changes, and the history of a file.
+    "sindrets/diffview.nvim",
+    cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory" },
+    keys = {
+      { "<leader>gd", "<cmd>DiffviewOpen<CR>", desc = "Diff: all changes (side by side)" },
+      { "<leader>gh", "<cmd>DiffviewFileHistory %<CR>", desc = "Diff: history of this file" },
+      { "<leader>gq", "<cmd>DiffviewClose<CR>", desc = "Diff: close" },
+    },
+  },
 }

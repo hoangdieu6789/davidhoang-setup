@@ -19,6 +19,7 @@ return {
       spec = {
         { "<leader>s", group = "Split" },
         { "<leader>f", group = "Find" },
+        { "<leader>g", group = "Git" },
       },
     },
   },

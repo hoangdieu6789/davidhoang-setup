@@ -82,6 +82,7 @@ Change **`files/nvim`** in git, then re-run **`./install.sh`** or **`./install.s
 - **Syntax**: Tree-sitter (Go modules, TypeScript/TSX, HTML, CSS, JSON/JSONC, YAML, Bash, …)
 - **UI**: Tokyo Night, Telescope, [nvim-tree](https://github.com/nvim-tree/nvim-tree.lua), Which Key
 - **Quality-of-life**: LSP format on save when the active server supports formatting, diagnostics shortcuts, common LSP keymaps
+- **Git**: gitsigns (hunks, blame), git-conflict, [lazygit.nvim](https://github.com/kdheepak/lazygit.nvim) (needs the `lazygit` program), [diffview.nvim](https://github.com/sindrets/diffview.nvim)
 - **Tests**: [Neotest](https://github.com/nvim-neotest/neotest) + [neotest-go](https://github.com/nvim-neotest/neotest-go) (`go test` from the editor; Tree-sitter **go** parser + **`go`** on **PATH**)
 
 ## Requirements
@@ -196,6 +197,11 @@ New to Vim? Run **`:Tutor`** first (built in, about 30 minutes).
 | `<leader>/` | Search inside the current file |
 | `<leader>fd` | Find a folder by name and show it in nvim-tree |
 | `<leader>fG` | Live grep inside one folder (asks for the folder first) |
+| `<leader>gg` | LazyGit (status, stage, commit, push, pull, branches) |
+| `<leader>gs` / `<leader>gc` / `<leader>gf` / `<leader>gb` | Telescope git status / commits / commits of this file / branches |
+| `<leader>gd` / `<leader>gh` / `<leader>gq` | Diffview: all changes / history of this file / close |
+| `]c` / `[c`, `<leader>hp` / `hs` / `hS` / `hr` / `hb` | Gitsigns: next / previous hunk, preview / stage / stage file / reset / blame |
+| `co` / `ct` / `cb` / `c0`, `]x` / `[x` | git-conflict: ours / theirs / both / none, next / previous conflict |
 | `<leader>e` | Toggle nvim-tree file explorer |
 | `Ctrl-h` / `Ctrl-j` / `Ctrl-k` / `Ctrl-l` | Go to the window left / below / above / right |
 | `<leader>sv` / `<leader>sh` | Split vertical / horizontal |

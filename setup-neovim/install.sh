@@ -207,6 +207,10 @@ install_packages_macos() {
   if ! command -v git >/dev/null 2>&1; then
     die "macOS: git is required. Install Xcode CLT or Homebrew, then re-run."
   fi
+  if ! command -v lazygit >/dev/null 2>&1 && command -v brew >/dev/null 2>&1; then
+    echo "macOS: installing lazygit (Space gg in Neovim) with Homebrew..."
+    brew install lazygit || echo "Warning: could not install lazygit; Space gg will not work." >&2
+  fi
 }
 
 install_packages_linux() {
@@ -246,6 +250,9 @@ install_packages_linux() {
       fi
       ;;
   esac
+  if ! command -v lazygit >/dev/null 2>&1; then
+    echo "Note: lazygit is not installed (needed for Space gg). See https://github.com/jesseduffield/lazygit#installation" >&2
+  fi
 }
 
 install_packages() {

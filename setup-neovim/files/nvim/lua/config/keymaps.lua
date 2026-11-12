@@ -16,6 +16,20 @@ end, { desc = "Buffers" })
 
 map("n", "<leader>e", "<cmd>NvimTreeToggle<CR>", { desc = "File tree" })
 
+-- Windows: easier than Ctrl-w. Ctrl + h/j/k/l = move left/down/up/right (same as hjkl).
+map("n", "<C-h>", "<C-w>h", { desc = "Go to left window" })
+map("n", "<C-j>", "<C-w>j", { desc = "Go to lower window" })
+map("n", "<C-k>", "<C-w>k", { desc = "Go to upper window" })
+map("n", "<C-l>", "<C-w>l", { desc = "Go to right window" })
+
+-- Space s = "split" group (press Space s and wait to see the list).
+map("n", "<leader>sv", "<cmd>vsplit<CR>", { desc = "Split vertical (left | right)" })
+map("n", "<leader>sh", "<cmd>split<CR>", { desc = "Split horizontal (top / bottom)" })
+map("n", "<leader>sx", "<cmd>close<CR>", { desc = "Close this split" })
+map("n", "<leader>so", "<cmd>only<CR>", { desc = "Close other splits" })
+map("n", "<leader>se", "<C-w>=", { desc = "Make splits equal size" })
+map("n", "<leader>sm", "<C-w>_<C-w>|", { desc = "Maximize this split" })
+
 -- Neotest (Go via neotest-go): needs `go` on PATH and Tree-sitter `go` parser.
 map("n", "<leader>tn", function()
   require("neotest").run.run()

@@ -191,6 +191,10 @@ New to Vim? Run **`:Tutor`** first (built in, about 30 minutes).
 | `<leader>fg` | Telescope live grep |
 | `<leader>fb` | Telescope buffers |
 | `<leader>e` | Toggle nvim-tree file explorer |
+| `Ctrl-h` / `Ctrl-j` / `Ctrl-k` / `Ctrl-l` | Go to the window left / below / above / right |
+| `<leader>sv` / `<leader>sh` | Split vertical / horizontal |
+| `<leader>sx` / `<leader>so` | Close this split / close other splits |
+| `<leader>se` / `<leader>sm` | Make splits equal size / maximize this split |
 | `<leader>tn` | Neotest: run nearest test |
 | `<leader>tf` | Neotest: run tests in file |
 | `<leader>ta` | Neotest: run suite (`go test` from cwd) |

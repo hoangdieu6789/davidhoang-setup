@@ -22,6 +22,40 @@ end, { desc = "Reopen last search" })
 map("n", "<leader>fo", function()
   require("telescope.builtin").oldfiles()
 end, { desc = "Recent files" })
+-- Space fd: find a folder by name, then show it in the file tree.
+map("n", "<leader>fd", function()
+  local fd = vim.fn.executable("fd") == 1 and "fd" or (vim.fn.executable("fdfind") == 1 and "fdfind" or nil)
+  local cmd = fd and { fd, "--type", "d", "--hidden", "--exclude", ".git" }
+    or { "find", ".", "-type", "d", "-not", "-path", "*/.git*", "-not", "-path", "*/node_modules/*" }
+  local actions = require("telescope.actions")
+  local state = require("telescope.actions.state")
+  require("telescope.builtin").find_files({
+    prompt_title = "Find folder",
+    find_command = cmd,
+    attach_mappings = function(prompt_bufnr)
+      actions.select_default:replace(function()
+        local entry = state.get_selected_entry()
+        actions.close(prompt_bufnr)
+        if entry then
+          require("nvim-tree.api").tree.find_file({ buf = entry.path or entry[1], open = true, focus = true })
+        end
+      end)
+      return true
+    end,
+  })
+end, { desc = "Find folder (show in tree)" })
+-- Space fG: like Space fg, but asks which folder to search in first (Tab completes folder names).
+map("n", "<leader>fG", function()
+  vim.ui.input({ prompt = "Search in folder: ", completion = "dir" }, function(dir)
+    if dir == nil then
+      return
+    end
+    if dir == "" then
+      dir = "."
+    end
+    require("telescope.builtin").live_grep({ search_dirs = { dir }, prompt_title = "Grep in " .. dir })
+  end)
+end, { desc = "Grep in a folder" })
 map("n", "<leader>/", function()
   require("telescope.builtin").current_buffer_fuzzy_find()
 end, { desc = "Search in this file" })
@@ -74,7 +108,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
       return { buffer = buf, desc = desc }
     end
     map("n", "gd", vim.lsp.buf.definition, opts("Goto definition"))
-    map("n", "gr", vim.lsp.buf.references, opts("References"))
+    map("n", "gr", function()
+      require("telescope.builtin").lsp_references()
+    end, opts("References (with preview)"))
     map("n", "K", vim.lsp.buf.hover, opts("Hover"))
     map("n", "<leader>rn", vim.lsp.buf.rename, opts("Rename"))
     map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts("Code action"))

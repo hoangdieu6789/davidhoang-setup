@@ -194,6 +194,8 @@ New to Vim? Run **`:Tutor`** first (built in, about 30 minutes).
 | `<leader>fr` | Reopen the last Telescope search |
 | `<leader>fo` | Recent files |
 | `<leader>/` | Search inside the current file |
+| `<leader>fd` | Find a folder by name and show it in nvim-tree |
+| `<leader>fG` | Live grep inside one folder (asks for the folder first) |
 | `<leader>e` | Toggle nvim-tree file explorer |
 | `Ctrl-h` / `Ctrl-j` / `Ctrl-k` / `Ctrl-l` | Go to the window left / below / above / right |
 | `<leader>sv` / `<leader>sh` | Split vertical / horizontal |
@@ -205,7 +207,7 @@ New to Vim? Run **`:Tutor`** first (built in, about 30 minutes).
 | `<leader>ts` | Neotest: toggle summary |
 | `<leader>to` | Neotest: open output |
 | `<leader>tS` | Neotest: stop run |
-| `gd` / `gr` / `K` | LSP definition / references / hover |
+| `gd` / `gr` / `K` | LSP definition / references (Telescope list with preview) / hover |
 | `<leader>rn` | LSP rename |
 | `<leader>ca` | LSP code action |
 | `<leader>f` | Format buffer (LSP) |

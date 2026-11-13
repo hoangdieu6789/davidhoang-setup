@@ -7,6 +7,7 @@ return {
     "jsonls",
     "bashls",
     "yamlls",
+    "marksman",
   },
   mason_packages = {
     "gopls",
@@ -15,6 +16,7 @@ return {
     "json-lsp",
     "bash-language-server",
     "yaml-language-server",
+    "marksman",
     -- Linters (not language servers): used by lua/plugins/lint.lua
     "markdownlint-cli2",
   },

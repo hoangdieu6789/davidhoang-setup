@@ -384,7 +384,7 @@ bootstrap_lazy() {
 }
 
 install_language_servers() {
-  echo "Installing language servers and linters with Mason (gopls, ts_ls, angularls, jsonls, bashls, yamlls, markdownlint-cli2)..."
+  echo "Installing language servers and linters with Mason (gopls, ts_ls, angularls, jsonls, bashls, yamlls, marksman, markdownlint-cli2)..."
   command -v npm >/dev/null 2>&1 \
     || echo "Warning: npm not found; the TypeScript, Angular, JSON, Bash and YAML servers need Node.js and npm." >&2
   if nvim --headless -c "luafile ${SCRIPT_DIR}/tools/mason-install.lua"; then

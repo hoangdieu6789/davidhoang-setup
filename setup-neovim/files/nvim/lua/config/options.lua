@@ -31,5 +31,15 @@ vim.filetype.add({
     mod = "gomod",
     sum = "gosum",
     workspace = "gomod",
+    -- MDX (Markdown + JSX, e.g. Next.js docs): Markdown highlighting and markdownlint.
+    mdx = "markdown",
   },
+})
+
+-- Neovim 0.11+ hides diagnostic text by default (only a sign in the left column).
+-- Show the message at the end of the line, so LSP and lint problems are easy to see.
+vim.diagnostic.config({
+  virtual_text = { spacing = 2, prefix = "●" },
+  severity_sort = true,
+  float = { border = "rounded", source = true },
 })

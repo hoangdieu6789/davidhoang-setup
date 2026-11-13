@@ -89,13 +89,13 @@ Change **`files/nvim`** in git, then re-run **`./install.sh`** or **`./install.s
 ## What you get
 
 - **Plugin manager**: `lazy.nvim`
-- **LSP**: [Mason](https://github.com/mason-org/mason.nvim) + [mason-lspconfig](https://github.com/mason-org/mason-lspconfig.nvim) + [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig), with **gopls**, **ts_ls**, **angularls**, **jsonls**, **bashls**, and **yamlls** queued for install (see **`lua/config/mason.lua`** for Mason package names)
-- **Completion**: `nvim-cmp` + `LuaSnip`
+- **LSP**: [Mason](https://github.com/mason-org/mason.nvim) + [mason-lspconfig](https://github.com/mason-org/mason-lspconfig.nvim) + [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig), with **gopls**, **ts_ls**, **angularls**, **jsonls**, **bashls**, **yamlls**, and **marksman** (Markdown: complete links to headings and files, go to a heading, rename it) queued for install (see **`lua/config/mason.lua`** for Mason package names)
+- **Completion**: `nvim-cmp` + `LuaSnip` + [friendly-snippets](https://github.com/rafamadriz/friendly-snippets) (ready-made snippets, e.g. in Markdown type `codeblock`, `link`, `table`, `h2`, then press Enter)
 - **Syntax**: Tree-sitter (Go modules, TypeScript/TSX, HTML, CSS, JSON/JSONC, YAML, Bash, …)
 - **UI**: Tokyo Night, Telescope, [nvim-tree](https://github.com/nvim-tree/nvim-tree.lua), Which Key
 - **Quality-of-life**: LSP format on save when the active server supports formatting, diagnostics shortcuts, common LSP keymaps
 - **Git**: gitsigns (hunks, blame), git-conflict, [lazygit.nvim](https://github.com/kdheepak/lazygit.nvim) (needs the `lazygit` program), [diffview.nvim](https://github.com/sindrets/diffview.nvim)
-- **Lint**: [nvim-lint](https://github.com/mfussenegger/nvim-lint) runs [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2) on Markdown files when you open, save, or leave insert mode (`<leader>l` runs it now). Problems show as normal diagnostics. To change the rules, add a **`.markdownlint-cli2.yaml`** (or **`.markdownlint.json`**) to the project, e.g. `config: { MD013: false }` to turn off the line-length rule
+- **Lint**: [nvim-lint](https://github.com/mfussenegger/nvim-lint) runs [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2) on Markdown and MDX files when you open, save, or leave insert mode (`<leader>l` runs it now). Problems show as normal diagnostics, with the message at the end of the line (`]d` / `[d` jump, `<leader>cd` shows the full text). To change the rules, add a **`.markdownlint-cli2.yaml`** (or **`.markdownlint.json`**) to the project, e.g. `config: { MD013: false }` to turn off the line-length rule
 - **Terminal**: [toggleterm.nvim](https://github.com/akinsho/toggleterm.nvim) (`Ctrl-\`, `<leader>T`)
 - **Tests**: [Neotest](https://github.com/nvim-neotest/neotest) + [neotest-go](https://github.com/nvim-neotest/neotest-go) (`go test` from the editor; Tree-sitter **go** parser + **`go`** on **PATH**)
 
@@ -237,6 +237,7 @@ New to Vim? Run **`:Tutor`** first (built in, about 30 minutes).
 | `<leader>ca` | LSP code action |
 | `<leader>f` | Format buffer (LSP) |
 | `<leader>l` | Lint this file now (markdownlint-cli2 for Markdown) |
+| `<leader>mf` | Markdown: fix the lint problems markdownlint-cli2 can fix (blank lines, spaces, ...) |
 | `[d` / `]d` | Previous / next diagnostic |
 
 Leader is **space** (`<leader>`).

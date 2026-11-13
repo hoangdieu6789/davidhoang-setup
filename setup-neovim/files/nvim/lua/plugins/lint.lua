@@ -34,6 +34,17 @@ return {
       })
 
       vim.keymap.set("n", "<leader>l", try_lint, { desc = "Lint this file" })
+
+      -- Let markdownlint-cli2 fix what it can (blank lines, spaces, list style ...), then reload.
+      vim.keymap.set("n", "<leader>mf", function()
+        if vim.bo.filetype ~= "markdown" then
+          return vim.notify("Not a Markdown file", vim.log.levels.WARN)
+        end
+        vim.cmd("silent update")
+        vim.fn.system({ "markdownlint-cli2", "--fix", vim.api.nvim_buf_get_name(0) })
+        vim.cmd("checktime")
+        try_lint()
+      end, { desc = "Markdown: fix lint problems" })
       -- The plugin loads during the first BufReadPost, before the filetype is set: lint a bit later.
       vim.schedule(try_lint)
     end,

@@ -15,5 +15,7 @@ return {
     "json-lsp",
     "bash-language-server",
     "yaml-language-server",
+    -- Linters (not language servers): used by lua/plugins/lint.lua
+    "markdownlint-cli2",
   },
 }

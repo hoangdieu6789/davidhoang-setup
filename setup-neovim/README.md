@@ -24,7 +24,7 @@ On a new machine, install these first (the script cannot do it for you): **Homeb
 | Go + tree-sitter | Go 1.24.3 into **`~/.local/go`**, tree-sitter CLI (Homebrew **`tree-sitter-cli`** or **`~/.local/bin`**) |
 | Config | Copies or links (**`--link`**) **`files/nvim`** to **`~/.config/nvim`** |
 | Plugins | Installs the plugin versions from **`lazy-lock.json`** and compiles the Tree-sitter parsers |
-| Language servers | Installs all Mason packages from **`lua/config/mason.lua`** and waits until they are done (**`tools/mason-install.lua`**), so **`gd`** / **`gr`** work on first launch |
+| Language servers | Installs all Mason packages from **`lua/config/mason.lua`** (language servers + **markdownlint-cli2**) and waits until they are done (**`tools/mason-install.lua`**), so **`gd`** / **`gr`** and Markdown lint work on first launch |
 | PATH | Adds **`export PATH="$HOME/.local/bin:$HOME/.local/go/bin:$PATH"`** to **`~/.zshrc`** (or **`~/.bashrc`** / **`~/.bash_profile`**) once |
 | Check | Prints **ok** / **MISSING** for every tool, with the feature that needs it |
 
@@ -95,6 +95,7 @@ Change **`files/nvim`** in git, then re-run **`./install.sh`** or **`./install.s
 - **UI**: Tokyo Night, Telescope, [nvim-tree](https://github.com/nvim-tree/nvim-tree.lua), Which Key
 - **Quality-of-life**: LSP format on save when the active server supports formatting, diagnostics shortcuts, common LSP keymaps
 - **Git**: gitsigns (hunks, blame), git-conflict, [lazygit.nvim](https://github.com/kdheepak/lazygit.nvim) (needs the `lazygit` program), [diffview.nvim](https://github.com/sindrets/diffview.nvim)
+- **Lint**: [nvim-lint](https://github.com/mfussenegger/nvim-lint) runs [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2) on Markdown files when you open, save, or leave insert mode (`<leader>l` runs it now). Problems show as normal diagnostics. To change the rules, add a **`.markdownlint-cli2.yaml`** (or **`.markdownlint.json`**) to the project, e.g. `config: { MD013: false }` to turn off the line-length rule
 - **Terminal**: [toggleterm.nvim](https://github.com/akinsho/toggleterm.nvim) (`Ctrl-\`, `<leader>T`)
 - **Tests**: [Neotest](https://github.com/nvim-neotest/neotest) + [neotest-go](https://github.com/nvim-neotest/neotest-go) (`go test` from the editor; Tree-sitter **go** parser + **`go`** on **PATH**)
 
@@ -235,6 +236,7 @@ New to Vim? Run **`:Tutor`** first (built in, about 30 minutes).
 | `<leader>rn` | LSP rename |
 | `<leader>ca` | LSP code action |
 | `<leader>f` | Format buffer (LSP) |
+| `<leader>l` | Lint this file now (markdownlint-cli2 for Markdown) |
 | `[d` / `]d` | Previous / next diagnostic |
 
 Leader is **space** (`<leader>`).

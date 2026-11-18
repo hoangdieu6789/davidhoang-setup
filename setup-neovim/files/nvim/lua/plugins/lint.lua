@@ -1,10 +1,14 @@
 -- Linters that are not language servers (nvim-lint). Results show as normal diagnostics.
+-- Markdown is linted only on demand (<leader>l shows / hides the problems), so notes stay clean.
 -- markdownlint-cli2 is installed by Mason (see lua/config/mason.lua).
 -- Rules: put a .markdownlint-cli2.yaml (or .markdownlint.json) in the project to change them.
 return {
   {
     "mfussenegger/nvim-lint",
-    event = { "BufReadPost", "BufNewFile", "BufWritePost" },
+    keys = {
+      { "<leader>l", desc = "Lint: show / hide problems" },
+      { "<leader>mf", desc = "Markdown: fix lint problems" },
+    },
     config = function()
       -- Mason puts its programs here; add it to PATH in case Mason has not started yet.
       local mason_bin = vim.fn.stdpath("data") .. "/mason/bin"
@@ -28,12 +32,33 @@ return {
         end
       end
 
-      vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost", "InsertLeave" }, {
-        group = vim.api.nvim_create_augroup("UserLint", { clear = true }),
-        callback = try_lint,
-      })
+      -- Problems found by the linters in this buffer (nvim-lint keeps one namespace per linter).
+      local function shown(bufnr)
+        for _, name in ipairs(lint.linters_by_ft[vim.bo[bufnr].filetype] or {}) do
+          if #vim.diagnostic.get(bufnr, { namespace = lint.get_namespace(name) }) > 0 then
+            return true
+          end
+        end
+        return false
+      end
 
-      vim.keymap.set("n", "<leader>l", try_lint, { desc = "Lint this file" })
+      local function clear(bufnr)
+        for _, name in ipairs(lint.linters_by_ft[vim.bo[bufnr].filetype] or {}) do
+          vim.diagnostic.reset(lint.get_namespace(name), bufnr)
+        end
+      end
+
+      -- On demand: the first press shows the problems, the next press hides them. Editing the
+      -- file does not run the linter again, so nothing pops up while you write.
+      vim.keymap.set("n", "<leader>l", function()
+        local bufnr = vim.api.nvim_get_current_buf()
+        if shown(bufnr) then
+          clear(bufnr)
+          vim.notify("Lint problems hidden")
+        else
+          try_lint()
+        end
+      end, { desc = "Lint: show / hide problems" })
 
       -- Let markdownlint-cli2 fix what it can (blank lines, spaces, list style ...), then reload.
       vim.keymap.set("n", "<leader>mf", function()
@@ -43,10 +68,8 @@ return {
         vim.cmd("silent update")
         vim.fn.system({ "markdownlint-cli2", "--fix", vim.api.nvim_buf_get_name(0) })
         vim.cmd("checktime")
-        try_lint()
+        clear(0)
       end, { desc = "Markdown: fix lint problems" })
-      -- The plugin loads during the first BufReadPost, before the filetype is set: lint a bit later.
-      vim.schedule(try_lint)
     end,
   },
 }

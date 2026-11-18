@@ -204,6 +204,7 @@ MACOS_BREW_TOOLS=(
   "fd:fd"
   "lazygit:lazygit"
   "node:node"
+  "marksman:marksman" # Markdown language server (also listed in Mason; brew works when Mason cannot reach GitHub)
 )
 
 install_packages_macos() {

@@ -25,6 +25,16 @@ return {
         automatic_enable = true,
       })
 
+      -- Also start servers installed outside Mason (e.g. `brew install marksman` when Mason
+      -- cannot download from GitHub): enable every listed server whose command is on PATH.
+      for _, name in ipairs(mason_cfg.lsp_servers) do
+        local cfg = vim.lsp.config[name]
+        local cmd = cfg and type(cfg.cmd) == "table" and cfg.cmd[1]
+        if cmd and vim.fn.executable(cmd) == 1 then
+          vim.lsp.enable(name)
+        end
+      end
+
       -- Install by Mason package name (avoid ensure_installed / empty registry map).
       local function install_mason_pkgs(success)
         if not success then

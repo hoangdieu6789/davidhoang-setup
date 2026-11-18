@@ -4,6 +4,8 @@ return {
     event = "InsertEnter",
     dependencies = {
       "hrsh7th/cmp-nvim-lsp",
+      "hrsh7th/cmp-buffer", -- words already in open files (useful in Markdown and comments)
+      "hrsh7th/cmp-path", -- file and folder paths
       "L3MON4D3/LuaSnip",
       "saadparwaiz1/cmp_luasnip",
       -- Ready-made snippets for many languages (Markdown: link, image, table, codeblock, ...).
@@ -43,9 +45,23 @@ return {
             end
           end, { "i", "s" }),
         }),
+        -- First group wins; the second group only shows when the first has nothing.
+        -- Markdown has no code LSP items, so buffer words and paths still suggest there.
         sources = cmp.config.sources({
           { name = "nvim_lsp" },
           { name = "luasnip" },
+          { name = "path" },
+        }, {
+          {
+            name = "buffer",
+            keyword_length = 3,
+            option = {
+              -- words from every open buffer, not only the current one
+              get_bufnrs = function()
+                return vim.api.nvim_list_bufs()
+              end,
+            },
+          },
         }),
       })
     end,

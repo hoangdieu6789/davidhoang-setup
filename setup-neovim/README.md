@@ -89,8 +89,8 @@ Change **`files/nvim`** in git, then re-run **`./install.sh`** or **`./install.s
 ## What you get
 
 - **Plugin manager**: `lazy.nvim`
-- **LSP**: [Mason](https://github.com/mason-org/mason.nvim) + [mason-lspconfig](https://github.com/mason-org/mason-lspconfig.nvim) + [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig), with **gopls**, **ts_ls**, **angularls**, **jsonls**, **bashls**, **yamlls**, and **marksman** (Markdown: complete links to headings and files, go to a heading, rename it) queued for install (see **`lua/config/mason.lua`** for Mason package names)
-- **Completion**: `nvim-cmp` + `LuaSnip` + [friendly-snippets](https://github.com/rafamadriz/friendly-snippets) (ready-made snippets, e.g. in Markdown type `codeblock`, `link`, `table`, `h2`, then press Enter)
+- **LSP**: [Mason](https://github.com/mason-org/mason.nvim) + [mason-lspconfig](https://github.com/mason-org/mason-lspconfig.nvim) + [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig), with **gopls**, **ts_ls**, **angularls**, **jsonls**, **bashls**, **yamlls**, and **marksman** (Markdown: complete links to headings and files, go to a heading, rename it) queued for install; a server installed outside Mason (for example `brew install marksman`) is started too when its command is on `PATH` (see **`lua/config/mason.lua`** for Mason package names)
+- **Completion**: `nvim-cmp` + `LuaSnip` + [friendly-snippets](https://github.com/rafamadriz/friendly-snippets) (ready-made snippets, e.g. in Markdown type `codeblock`, `link`, `table`, `h2`, then press Enter). Other sources: file paths (`cmp-path`) and words from open files (`cmp-buffer`, after 3 letters)
 - **Syntax**: Tree-sitter (Go modules, TypeScript/TSX, HTML, CSS, JSON/JSONC, YAML, Bash, …)
 - **UI**: Tokyo Night, Telescope, [nvim-tree](https://github.com/nvim-tree/nvim-tree.lua), Which Key
 - **Quality-of-life**: LSP format on save when the active server supports formatting, diagnostics shortcuts, common LSP keymaps
